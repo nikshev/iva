@@ -5,6 +5,7 @@
  * Date: 11.11.14
  * Time: 15:40
  */
+require_once("iva.php");
 $params=array();
 $params["fn"]=addslashes($_POST["fn"]);
 $params["sn"]=addslashes($_POST["sn"]);
@@ -19,6 +20,7 @@ $params["mps"]=floatval($$_POST["mps"]);
 $iva=new Iva();
 $unique=$iva->post_parameters($params);
 ?>
+<html>
 <title>Lawsuit and calculation</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="Lawsuit and calculation" content="Lawsuit and calculation">
@@ -35,7 +37,7 @@ $unique=$iva->post_parameters($params);
 
                     <!-- Form Name -->
                     <legend>Settings (step №2)</legend>
-                    <input type="hidden" id="unique" value="<?php echo $unique ?>"/>
+                    <input type="hidden" id="unique" name="unique" value="<?php echo $unique ?>"/>
                     <div class="form-group">
                         <label class="col-md-3 control-label" for="lp">Late payments</label>
                         <div class="col-md-9">
