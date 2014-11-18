@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `inflation` (
   `period_start` date NOT NULL,
   `inflation` double NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `lawsuit` (
   `mps` float NOT NULL,
   `debt` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=3 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `lawsuit_debt` (
   `start_date` date NOT NULL,
   `amount` float NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=7 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -80,7 +80,29 @@ CREATE TABLE IF NOT EXISTS `rates` (
   `period_start` date NOT NULL,
   `rate` float NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=76 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `lawsuit_calc`
+--
+
+CREATE TABLE IF NOT EXISTS `lawsuit_calc` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `lawsuit_id` int(11) NOT NULL,
+  `days` int(11) NOT NULL,
+  `percent` float NOT NULL,
+  `inflation_av` float NOT NULL,
+  `inflation_sum` float NOT NULL,
+  `rate_start` date NOT NULL,
+  `rate_stop` date NOT NULL,
+  `rate_days` int(11) NOT NULL,
+  `rate` float NOT NULL,
+  `rate_summ` float NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

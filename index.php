@@ -4,7 +4,26 @@
  <title>Lawsuit and calculation</title>
  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
  <meta name="Lawsuit and calculation" content="Lawsuit and calculation">
+ <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
  <link rel="stylesheet" type="text/css" href="../bootstrap/css/bootstrap.min.css" media="screen" />
+ <link rel="stylesheet" type="text/css" href="../datetime/css/bootstrap-datetimepicker.min.css"/>
+ <script src="../datetime/js/bootstrap-datetimepicker.min.js"></script>
+ <script type="text/javascript">
+  $(function() {
+   $('#datetimepicker1').datetimepicker({
+    language: 'pt-BR'
+   });
+
+   $('#datetimepicker2').datetimepicker({
+    language: 'pt-BR'
+   });
+
+   $('#datetimepicker3').datetimepicker({
+    language: 'pt-BR'
+   });
+
+  });
+ </script>
 </head>
  <body>
  <div class="container">
@@ -45,12 +64,12 @@
     </div>
    </div>
 
-   <div class="control-group">
+   <!--<div class="control-group">
     <label class="control-label" for="tar">Amount to be recovered</label>
     <div class="controls">
      <input type="text" id="tar" name="tar" placeholder="Please enter total amount to be recovered..." value=""/><br/>
     </div>
-   </div>
+   </div>-->
 
    <div class="control-group">
     <label class="control-label" for="ac">Agreement code</label>
@@ -62,7 +81,13 @@
    <div class="control-group">
     <label class="control-label" for="asd">Agreement start date</label>
     <div class="controls">
-     <input type="text" id="ac" name="asd" placeholder="Please enter agreement start date..." value=""/><br/>
+     <div id="datetimepicker1" class="input-append date">
+      <input data-format="dd.MM.yyyy" type="text" id="asd" name="asd" placeholder="Please enter agreement start date..." value=""/>
+       <span class="add-on">
+        <i data-time-icon="icon-time" data-date-icon="icon-calendar">
+        </i>
+       </span>
+    </div>
     </div>
    </div>
 
@@ -70,14 +95,28 @@
    <div class="control-group">
     <label class="control-label" for="astd">Agreement stop date</label>
     <div class="controls">
-     <input type="text" id="astd" name="astd" placeholder="Please enter agreement stop date..." value=""/><br/>
+     <div id="datetimepicker2" class="input-append date">
+      <input data-format="dd.MM.yyyy" type="text" id="astd" name="astd" placeholder="Please enter agreement stop date..." value=""/>
+       <span class="add-on">
+        <i data-time-icon="icon-time" data-date-icon="icon-calendar">
+        </i>
+       </span>
+     </div>
     </div>
    </div>
+
+
 
    <div class="control-group">
     <label class="control-label" for="pd">Prolongation date</label>
     <div class="controls">
-     <input type="text" id="pd" name="pd" placeholder="Please enter prolongation date..." value=""/><br/>
+     <div id="datetimepicker3" class="input-append date">
+      <input data-format="dd.MM.yyyy" type="text" id="pd" name="pd" placeholder="Please enter prolongation date..." value=""/>
+       <span class="add-on">
+        <i data-time-icon="icon-time" data-date-icon="icon-calendar">
+        </i>
+       </span>
+     </div>
     </div>
    </div>
 
@@ -135,4 +174,5 @@
   </div>
  </div>
  </body>
+
 </html>

@@ -9,7 +9,7 @@ require_once("iva.php");
 $iva=new Iva();
 if (isset($_POST["inflation"])) {
     $inflation_text = addslashes($_POST["inflation"]);
-    $iva->update_rates($inflation_text);
+    $iva->update_inflation($inflation_text);
 }
 $inflation=$iva->get_inflation();
 ?>
@@ -40,14 +40,14 @@ $inflation=$iva->get_inflation();
                                 <?php echo $row["date"];?>
                             </td>
                             <td>
-                                <?php echo $row["$inflation"];?>
+                                <?php echo $row["inflation"];?>
                             </td>
                         </tr>
                     <?php endforeach?>
                 <?php endif ?>
                 </tbody>
             </table>
-            <form class="form-horizontal" enctype="multipart/form-data" action="rates.php" method="POST">
+            <form class="form-horizontal" enctype="multipart/form-data" action="inflation.php" method="POST">
                 <fieldset>
 
                     <!-- Form Name -->

@@ -10,8 +10,8 @@ $params=array();
 $params["debt"]=addslashes($_POST["lp"]);
 $params["unique"]=addslashes($_POST["unique"]);
 $iva=new Iva();
-$iva->update_debt($params);
-$result=$iva->calc($params["unique"]);
-//$result=$iva->fill_documents($params["unique"]);
+//$iva->update_debt($params);
+//$iva->calc($params["unique"]);
+$result=$iva->fill_documents($params["unique"]);
 
 ?>
