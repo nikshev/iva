@@ -113,58 +113,87 @@ class Iva {
     /**
      * @return array
      */
-    function fill_documents($unique){
+    function fill_documents($unique=1){
         require_once("../PHPWord.php");
-        $result=array();
+        require_once("../PHPExcel.php");
+        require_once ('../PHPExcel/IOFactory.php');
+
+        $result_array=array();
 
         //Prepare lawsuit
-        $this->connect();
-        $query = "SELECT * FROM lawsuit WHERE id=".$unique.";";
-        $result = mysql_query($query) or die('Query: '.$query.' in calc fault: ' . mysql_error());
-        $row=mysql_fetch_assoc($result);
-        $this->disconnect();
+        if ($unique>0) {
+            $this->connect();
+            $query = "SELECT * FROM lawsuit WHERE id=" . $unique . ";";
+            $result = mysql_query($query) or die('Query: ' . $query . ' in calc fault: ' . mysql_error());
+            $row = mysql_fetch_assoc($result);
+            $this->disconnect();
 
-        $total_amount=$this->get_total_amount($unique);
+            if (isset($row["fn"])) {
+                $total_amount = $this->get_total_amount($unique);
 
-        if (!isset($total_amount["percent"]))
-         $total_amount["percent"]=0;
+                if (!isset($total_amount["percent"]))
+                    $total_amount["percent"] = 0;
 
-        if (!isset($total_amount["inflation_sum"]))
-            $total_amount["inflation_sum"]=0;
+                if (!isset($total_amount["inflation_sum"]))
+                    $total_amount["inflation_sum"] = 0;
 
-        if (!isset($total_amount["rate_summ"]))
-            $total_amount["rate_summ"]=0;
+                if (!isset($total_amount["rate_summ"]))
+                    $total_amount["rate_summ"] = 0;
 
-        if (!isset($total_amount["total_amount"]))
-            $total_amount["total_amount"]=0;
+                if (!isset($total_amount["total_amount"]))
+                    $total_amount["total_amount"] = 0;
 
+                //Word part
+                $PHPWord = new PHPWord();
+                $document = $PHPWord->loadTemplate('../templates/template1.docx');
 
-        $PHPWord = new PHPWord();
-        $document = $PHPWord->loadTemplate('../templates/template1.docx');
+                $now = new DateTime();
+                $document->setValue('item1', $row["fn"]);
+                $result_array["fn"] = $row["fn"];
+                $document->setValue('item2', $row["sn"]);
+                $result_array["fn"] = $row["sn"];
+                $document->setValue('item3', $row["address"]);
+                $result_array["fn"] = $row["address"];
+                $document->setValue('item4', $row["tin"]);
+                $result_array["tin"] = $row["tin"];
+                $result_array["tar"] = round($total_amount["total_amount"] + $total_amount["percent"] + $total_amount["inflation_sum"] + $total_amount["rate_summ"],2);
+                $document->setValue('item5', $result_array["tar"]); //this field from Excel calculation
+                $document->setValue('item6', $row["ac"]);
+                $result_array["ac"] = $row["ac"];
+                $document->setValue('item7', $row["asd"]);
+                $result_array["asd"] = $row["asd"];
+                $document->setValue('item8', $row["astd"]);
+                $result_array["astd"] = $row["astd"];
+                $document->setValue('item9', $row["pd"]);
+                $result_array["pd"] = $row["pd"];
+                $document->setValue('item10', $row["mps"]);
+                $result_array["mps"] = $row["mps"];
+                $document->setValue('item11', round($total_amount["total_amount"],2));
+                $result_array["total_amount"] = round($total_amount["total_amount"],2);
+                $document->setValue('item12', round($total_amount["percent"],2));
+                $result_array["percent"] = round($total_amount["percent"],2);
+                $document->setValue('item13', round($total_amount["inflation_sum"],2));
+                $result_array["inflation_sum"] = round($total_amount["inflation_sum"],2);
+                $document->setValue('item14', round($total_amount["rate_summ"],2));
+                $result_array["rate_summ"] = round($total_amount["rate_summ"],2);
+                $document->setValue('item16', $now->format('d.m.Y'));
+                $document->save('../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.docx');
+                $result_array["docx"] = '../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.docx';
 
-        $now=new DateTime();
-        $document->setValue('item1', $row["fn"]);
-        $result_array["fn"]=$row["fn"];
-        $document->setValue('item2', $row["sn"]);
-        $result_array["fn"]=$row["sn"];
-        $document->setValue('item3', $row["address"]);
-        $result_array["fn"]=$row["address"];
-        $document->setValue('item4', $row["tin"]);
-        $result_array["tin"]=$row["address"];
-        $document->setValue('item5', $row["tar"]); //this field from Excel calculation
-        $document->setValue('item6', $row["ac"]);
-        $document->setValue('item7', $row["asd"]);
-        $document->setValue('item8', $row["astd"]);
-        $document->setValue('item9', $row["pd"]);
-        $document->setValue('item10', $row["mps"]);
-        $document->setValue('item11', $total_amount["total_amount"]);
-        $document->setValue('item12',  $total_amount["percent"]);
-        $document->setValue('item13',  $total_amount["inflation_sum"]);
-        $document->setValue('item14',  $total_amount["rate_summ"]);
-        $document->setValue('item16', $now->format('d.m.Y'));
-        $document->save('../results/'.$now->format('Y-m-d h:i:s').'-'.$row["sn"].'.docx');
-
-        return $result;
+                //Excel part
+                $objReader = PHPExcel_IOFactory::createReader('Excel2007');
+                $objPHPExcel = $objReader->load("../templates/template1.xlsx");
+                $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+                //$objWriter->save(str_replace('.php', '.xls', __FILE__));
+                $objWriter->save('../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.xlsx');
+                var_dump($objPHPExcel);
+                echo "<br/>";
+                var_dump($objWriter);
+                echo "<br/>";
+                $result_array["xlsx"] = '../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.xlsx';
+            }
+        }
+        return $result_array;
     }
 
     /**
