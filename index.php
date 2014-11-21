@@ -34,6 +34,7 @@
   <form class="form-horizontal" enctype="multipart/form-data" action="next.php" method="POST">
    <fieldset>
    <legend>Settings (step №1)</legend>
+   <a href="http://ua.linkedin.com/pub/eugene-shkurnikov/79/b13/124">About me</a>
 
 
    <div class="control-group">

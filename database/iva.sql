@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS `rates` (
 CREATE TABLE IF NOT EXISTS `lawsuit_calc` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `lawsuit_id` int(11) NOT NULL,
+  `debt_id` int(11) NOT NULL,
   `days` int(11) NOT NULL,
   `percent` float NOT NULL,
   `inflation_av` float NOT NULL,
@@ -101,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `lawsuit_calc` (
   `rate` float NOT NULL,
   `rate_summ` float NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

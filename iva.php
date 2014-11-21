@@ -48,7 +48,7 @@ class Iva {
     function post_parameters($params=array()){
 
         $unique=-1;
-        $now=new DateTime();
+        $now=new \DateTime("now");
         if (!isset($params["fn"]))
             $params["fn"]="unknown";
 
@@ -117,6 +117,7 @@ class Iva {
         require_once("../PHPWord.php");
         require_once("../PHPExcel.php");
         require_once ('../PHPExcel/IOFactory.php');
+        //ini_set('memory_limit', '512M');
 
         $result_array=array();
 
@@ -147,16 +148,16 @@ class Iva {
                 $PHPWord = new PHPWord();
                 $document = $PHPWord->loadTemplate('../templates/template1.docx');
 
-                $now = new DateTime();
+                $now=new \DateTime("now");
                 $document->setValue('item1', $row["fn"]);
                 $result_array["fn"] = $row["fn"];
                 $document->setValue('item2', $row["sn"]);
-                $result_array["fn"] = $row["sn"];
+                $result_array["sn"] = $row["sn"];
                 $document->setValue('item3', $row["address"]);
-                $result_array["fn"] = $row["address"];
+                $result_array["address"] = $row["address"];
                 $document->setValue('item4', $row["tin"]);
                 $result_array["tin"] = $row["tin"];
-                $result_array["tar"] = round($total_amount["total_amount"] + $total_amount["percent"] + $total_amount["inflation_sum"] + $total_amount["rate_summ"],2);
+                $result_array["tar"] = round($total_amount["total_amount"] + $total_amount["percent"] + $total_amount["inflation_sum"] + $total_amount["rate_summ"], 2);
                 $document->setValue('item5', $result_array["tar"]); //this field from Excel calculation
                 $document->setValue('item6', $row["ac"]);
                 $result_array["ac"] = $row["ac"];
@@ -168,32 +169,131 @@ class Iva {
                 $result_array["pd"] = $row["pd"];
                 $document->setValue('item10', $row["mps"]);
                 $result_array["mps"] = $row["mps"];
-                $document->setValue('item11', round($total_amount["total_amount"],2));
-                $result_array["total_amount"] = round($total_amount["total_amount"],2);
-                $document->setValue('item12', round($total_amount["percent"],2));
-                $result_array["percent"] = round($total_amount["percent"],2);
-                $document->setValue('item13', round($total_amount["inflation_sum"],2));
-                $result_array["inflation_sum"] = round($total_amount["inflation_sum"],2);
-                $document->setValue('item14', round($total_amount["rate_summ"],2));
-                $result_array["rate_summ"] = round($total_amount["rate_summ"],2);
+                $document->setValue('item11', round($total_amount["total_amount"], 2));
+                $result_array["total_amount"] = round($total_amount["total_amount"], 2);
+                $document->setValue('item12', round($total_amount["percent"], 2));
+                $result_array["percent"] = round($total_amount["percent"], 2);
+                $document->setValue('item13', round($total_amount["inflation_sum"], 2));
+                $result_array["inflation_sum"] = round($total_amount["inflation_sum"], 2);
+                $document->setValue('item14', round($total_amount["rate_summ"], 2));
+                $result_array["rate_summ"] = round($total_amount["rate_summ"], 2);
                 $document->setValue('item16', $now->format('d.m.Y'));
                 $document->save('../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.docx');
                 $result_array["docx"] = '../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.docx';
-
+            }
                 //Excel part
                 $objReader = PHPExcel_IOFactory::createReader('Excel2007');
                 $objPHPExcel = $objReader->load("../templates/template1.xlsx");
                 $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-                //$objWriter->save(str_replace('.php', '.xls', __FILE__));
+                $objPHPExcel->getActiveSheet()->setCellValue('D6', $now->format('d.m.Y'));
+                $row_index=16;
+                $total_amount=0.0;
+                $total_percent_sum=0.0;
+                $total_inflation_sum=0.0;
+                $total_rate_sum=0.0;
+                $this->connect();
+                $query = "SELECT lawsuit_calc. * , lawsuit_debt.start_date, lawsuit_debt.amount ".
+                         " FROM lawsuit_calc ".
+                         " LEFT JOIN lawsuit_debt ON lawsuit_calc.debt_id = lawsuit_debt.id ".
+                         " WHERE lawsuit_calc.lawsuit_id =" . $unique . ";";
+                $result = mysql_query($query) or die('Query: ' . $query . ' in calc fault: ' . mysql_error());
+                while ($row = mysql_fetch_assoc($result)){
+                   // var_dump($row);
+                    if (isset($row["start_date"])) {
+                        $tmp_date=new DateTime($row["start_date"]);
+                        $objPHPExcel->getActiveSheet()->setCellValue('A' . $row_index, $tmp_date->format('d.m.Y'));
+                        $royalti=$this->getRoyaltiFromNumber($tmp_date->format('m'));
+                        $objPHPExcel->getActiveSheet()->setCellValue('B' . $row_index, $royalti." ".$tmp_date->format('Y')." року");
+                    }
+
+                    if (isset($row["amount"])){
+                        $objPHPExcel->getActiveSheet()->setCellValue('C' . $row_index, $row["amount"]);
+                        $total_amount+=floatval($row["amount"]);
+                    }
+
+                    if (isset($row["days"])&&intval($row["days"])>0){
+                        $objPHPExcel->getActiveSheet()->setCellValue('D' . $row_index, $row["days"]);
+                    }
+
+                    if (isset($row["percent"])&&floatval($row["percent"])>0){
+                        $objPHPExcel->getActiveSheet()->setCellValue('E' . $row_index, $row["percent"]);
+                        $total_percent_sum+=floatval($row["percent"]);
+                    }
+
+                    if (isset($row["inflation_av"])&&floatval($row["inflation_av"])>0){
+                        $objPHPExcel->getActiveSheet()->setCellValue('F' . $row_index, $row["inflation_av"]);
+                    }
+
+                    if (isset($row["inflation_sum"])&&floatval($row["inflation_sum"])!=0){
+                        $objPHPExcel->getActiveSheet()->setCellValue('G' . $row_index, $row["inflation_sum"]);
+                        $total_inflation_sum+=$row["inflation_sum"];
+                    }
+
+                    if (isset($row["rate_start"])){
+                        $tmp_date=new DateTime($row["rate_start"]);
+                        $objPHPExcel->getActiveSheet()->setCellValue('H' . $row_index, $tmp_date->format('d.m.Y'));
+                    }
+
+                    if (isset($row["rate_stop"])){
+                        $tmp_date=new DateTime($row["rate_stop"]);
+                        $objPHPExcel->getActiveSheet()->setCellValue('I' . $row_index, $tmp_date->format('d.m.Y'));
+                    }
+
+                    if (isset($row["rate"])&&floatval($row["rate"])>0){
+                        $objPHPExcel->getActiveSheet()->setCellValue('J' . $row_index, $row["rate"]);
+                    }
+
+                    if (isset($row["rate_summ"])&&floatval($row["rate_summ"])>0){
+                        $objPHPExcel->getActiveSheet()->setCellValue('K' . $row_index, $row["rate_summ"]);
+                        $total_rate_sum+=floatval($row["rate_summ"]);
+                    }
+                    $row_index++;
+                }
+                $this->disconnect();
+                //Total sum
+                $row_index++;
+                $objPHPExcel->getActiveSheet()->setCellValue('C' . $row_index, round($total_amount,2));
+                $objPHPExcel->getActiveSheet()->setCellValue('E' . $row_index, round($total_percent_sum,2));
+                $objPHPExcel->getActiveSheet()->setCellValue('G' . $row_index, round($total_inflation_sum,2));
+                $objPHPExcel->getActiveSheet()->setCellValue('K' . $row_index, round($total_rate_sum,2));
+
                 $objWriter->save('../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.xlsx');
-                var_dump($objPHPExcel);
-                echo "<br/>";
-                var_dump($objWriter);
-                echo "<br/>";
                 $result_array["xlsx"] = '../results/' . $now->format('Y-m-d h:i:s') . '-' . $row["sn"] . '.xlsx';
-            }
+
         }
         return $result_array;
+    }
+
+    function getRoyaltiFromNumber($month){
+        $ret_val="";
+        $int_month=intval($month);
+        switch ($int_month){
+            case 1: $ret_val="Роялтi за Ciчень ";
+                break;
+            case 2: $ret_val="Роялтi за Лютий ";
+                break;
+            case 3: $ret_val="Роялтi за Березень ";
+                break;
+            case 4: $ret_val="Роялтi за Квiтень ";
+                break;
+            case 5: $ret_val="Роялтi за Травень ";
+                break;
+            case 6: $ret_val="Роялтi за Червень ";
+                break;
+            case 7: $ret_val="Роялтi за Липень ";
+                break;
+            case 8: $ret_val="Роялтi за Серпень ";
+                break;
+            case 9: $ret_val="Роялтi за Вересень ";
+                break;
+            case 10: $ret_val="Роялтi за Жовтень ";
+                break;
+            case 11: $ret_val="Роялтi за Листопад ";
+                break;
+            case 12: $ret_val="Роялтi за Грудень ";
+                break;
+        }
+        return $ret_val;
     }
 
     /**
@@ -201,13 +301,14 @@ class Iva {
      */
     function calc($unique){
         $result_array=array();
-        $now=new DateTime();
+        $now=new \DateTime("now");
       if (isset($unique)){
           $this->connect();
           $query = "SELECT * FROM lawsuit_debt WHERE lawsuit_id=".$unique." order by start_date;";
           $result = mysql_query($query) or die('Query: '.$query.' in calc fault: ' . mysql_error());
           $this->disconnect();
           while ($row=mysql_fetch_assoc($result)){
+              $result_array["debt_id"]=$row["id"];
               $result_array["days"]=$now->diff(new DateTime($row["start_date"]))->days;
               if (intval($result_array["days"])>0) {
                   $result_array["percent"] = (intval($result_array["days"])*0.03/365)*$row["amount"];
@@ -217,14 +318,14 @@ class Iva {
               $result_array["rates"]=$this->get_rates_calc($row["start_date"],$row["amount"]);
             //  echo "----------------------------------".$row["start_date"]."--------------------------------------<br/>";
              // var_dump($result_array);
-              echo "</br>";
+              //echo "</br>";
               $first_row=true;
               foreach ($result_array["rates"] as $rrow) {
                   if ($first_row) {
-                      $query = "INSERT INTO lawsuit_calc(lawsuit_id, days, percent,".
+                      $query = "INSERT INTO lawsuit_calc(debt_id,lawsuit_id, days, percent,".
                           " inflation_av, inflation_sum, rate_start," .
                           " rate_stop, rate_days, rate, rate_summ)" .
-                          " VALUES (" . $unique . "," . $result_array["days"] . ","
+                          " VALUES (".$result_array["debt_id"]."," . $unique . "," . $result_array["days"] . ","
                           . $result_array["percent"] . "," . $result_array["inflation_av"] .",".
                           $result_array["inflation_sum"].
                           ",STR_TO_DATE('". $rrow["period_start"]."','%d.%m.%Y'),".
